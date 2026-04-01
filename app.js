@@ -3,10 +3,10 @@ let filtered = [];
 let state = { page: 1, pageSize: 20, pages: 1 };
 
 const SYNONYMS = {
-  project_name: ["项目名称", "项目", "交易", "Matter", "Project"],
+  project_name: ["项目名称", "公司名称", "项目", "交易", "Matter", "Project"],
   year: ["年份", "年度", "年", "Year"],
   role: ["角色", "团队角色", "Role"],
-  industry: ["行业", "所属行业", "企业所属行业", "Industry"],
+  industry: ["行业", "所处行业", "所属行业", "企业所属行业", "Industry"],
   listing_type: ["上市类型", "上市类别", "IPO类型", "上市方式", "Listing Type", "Listing"],
 };
 
