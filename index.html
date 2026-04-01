@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>项目检索（静态版）</title>
+    <style>
+      :root { color-scheme: light; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Microsoft YaHei", sans-serif; margin: 0; background: #f6f7fb; color: #111827; }
+      header { background: white; border-bottom: 1px solid #e5e7eb; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+      h1 { font-size: 18px; margin: 0; }
+      .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
+      .grid { display: grid; gap: 12px; }
+      .grid-6 { grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; align-items: end; }
+      label { font-size: 12px; color: #374151; display: block; margin-bottom: 6px; }
+      input, select { width: 100%; padding: 10px 10px; border-radius: 10px; border: 1px solid #d1d5db; background: white; font-size: 14px; }
+      button { padding: 10px 14px; border-radius: 10px; border: 1px solid #111827; background: #111827; color: white; font-size: 14px; cursor: pointer; }
+      button.secondary { background: white; color: #111827; border-color: #d1d5db; }
+      button:disabled { opacity: .5; cursor: not-allowed; }
+      .muted { color: #6b7280; font-size: 12px; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+      th { text-align: left; font-size: 12px; color: #374151; }
+      td { font-size: 14px; }
+      .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; }
+      .kv { display: grid; grid-template-columns: 220px 1fr; gap: 6px 12px; padding: 10px 0 0; }
+      .k { font-size: 12px; color: #374151; }
+      .v { font-size: 13px; color: #111827; white-space: pre-wrap; }
+      .warn { background: #fffbeb; border: 1px solid #f59e0b33; color: #92400e; padding: 10px 12px; border-radius: 10px; font-size: 13px; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container row" style="justify-content: space-between;">
+        <h1>项目检索（静态版）</h1>
+        <div class="muted">无需 Python / 无需数据库；数据来自 <code>data.json</code></div>
+      </div>
+    </header>
+
+    <main class="container grid" style="gap: 14px;">
+      <section class="card" id="hintCard" style="display:none;">
+        <div class="warn">
+          由于浏览器安全限制，直接双击打开 HTML 时可能无法读取本地 <code>data.json</code>。
+          建议用本目录的 <code>run-local.ps1</code> 启动一个本地静态服务器，然后再访问提示的地址。
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="grid grid-6">
+          <div>
+            <label>关键字（可搜全部字段）</label>
+            <input id="q" placeholder="例如：企业名、交易名、角色..." />
+          </div>
+          <div>
+            <label>年份</label>
+            <select id="year"><option value="">全部</option></select>
+          </div>
+          <div>
+            <label>角色</label>
+            <select id="role"><option value="">全部</option></select>
+          </div>
+          <div>
+            <label>行业</label>
+            <select id="industry"><option value="">全部</option></select>
+          </div>
+          <div>
+            <label>上市类型</label>
+            <select id="listing_type"><option value="">全部</option></select>
+          </div>
+          <div class="row" style="justify-content:flex-end;">
+            <button id="searchBtn">检索</button>
+            <button id="resetBtn" class="secondary">重置</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px; justify-content: space-between;">
+          <div class="muted">
+            <span id="stats">加载中...</span>
+          </div>
+          <div class="pager">
+            <button id="prevBtn" class="secondary">上一页</button>
+            <span class="muted"><span id="pageInfo">1 / 1</span></span>
+            <button id="nextBtn" class="secondary">下一页</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>项目名称</th>
+              <th style="width: 90px;">年份</th>
+              <th style="width: 160px;">角色</th>
+              <th style="width: 160px;">行业</th>
+              <th style="width: 160px;">上市类型</th>
+              <th style="width: 120px;">详情</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="muted" style="display:none; padding: 12px;">没有结果</div>
+      </section>
+
+      <section class="card">
+        <details>
+          <summary>更新数据（把 Excel 转成 data.json）</summary>
+          <p class="muted">
+            静态版不直接读取 Excel。你每次更新 Excel 后，运行 <code>export-data.ps1</code> 重新生成 <code>data.json</code>，再把整个文件夹发给客户即可。
+          </p>
+          <div class="muted">
+            说明：该脚本使用 Windows + Excel（COM）导出，不依赖 Python；需要本机安装 Microsoft Excel。
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
